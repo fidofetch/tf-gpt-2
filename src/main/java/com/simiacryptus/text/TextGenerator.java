@@ -45,6 +45,10 @@ public class TextGenerator {
    */
   protected final int vocabularySize;
   /**
+   * The Temperature
+   */
+  protected float temperature = .7f;
+  /**
    * The Codec.
    */
   protected final GPT2Codec codec;
@@ -230,7 +234,6 @@ public class TextGenerator {
    */
   @Nonnull
   public String generateText(@Nonnull Predicate<String> terminator, String prefix) {
-    clearBuffer();
     feed(prefix);
     generate(terminator);
     return getText();
@@ -246,9 +249,10 @@ public class TextGenerator {
   @Nonnull
   //TODO: make wording consitant
   public String generateText(int numberOfTokens, String prefix) {
+    System.out.println(nextSelections);
     feed(prefix);
-//    clearBuffer();
     generate(numberOfTokens);
+    System.out.println(nextSelections);
     return getText();
   }
 
@@ -359,24 +363,13 @@ public class TextGenerator {
   }
   
   /**
-   * Clear the text buffer
-   * 
-   * @return the TextGenerator
-   */
-  @Nonnull
-  public TextGenerator clearBuffer(){
-      codes.clear();
-      return this;
-  }
-
-  /**
    * Select int.
    *
    * @param chosen the chosen
    * @return the int
    */
   protected int select(@Nonnull float[] chosen) {
-    double originalFate = Math.random() * .7;//This might be temperature
+    double originalFate = Math.random() * temperature;//TODO: find a better way to calculate temperature
     double fate = originalFate;
     int j = 0;
     int[] topCandidates = sortedIndices(chosen, chosen.length);
@@ -400,4 +393,21 @@ public class TextGenerator {
     Arrays.stream(sortedIndices(chosen, count))
         .forEach(candidate -> logger.info(RefString.format("\t#%d %.4f%% '%s'", candidate, chosen[candidate] * 100, codec.decode(candidate))));
   }
+  
+  /**
+   * 
+   * @return the current temperature as a float
+   */
+    public float getTemperature() {
+        return temperature;
+    }
+/**
+ * Set the temperature for the model
+ * Higher numbers equate to more randomness.
+ * 
+ * @param temperature 
+ */
+    public void setTemperature(float temperature) {
+        this.temperature = temperature;
+    }
 }
