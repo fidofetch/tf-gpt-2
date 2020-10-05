@@ -54,7 +54,7 @@ public class GPT2Util {
   /**
    * Gets 345 m.
    *
-   * @return the 345 m
+   * @return a TextGenerator that utilizes the 345M model.
    */
   @Nonnull
   public static TextGenerator get345M() {

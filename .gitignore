@@ -16,3 +16,4 @@ pom.xml.versionsBackup
 release.properties
 target/
 tf-gpt-2.iml
+/src/main/java/Testing/
