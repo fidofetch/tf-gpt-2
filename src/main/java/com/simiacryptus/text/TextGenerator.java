@@ -21,17 +21,16 @@ package com.simiacryptus.text;
 
 import com.simiacryptus.ref.wrappers.RefString;
 import com.simiacryptus.text.gpt2.GPT2Codec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type Text generator.
@@ -62,6 +61,7 @@ public class TextGenerator {
    */
   @Nonnull
   List<Integer> codes = new ArrayList<>();
+  List<Integer> output = new ArrayList<>();
   /**
    * The Next selections.
    */
@@ -132,7 +132,10 @@ public class TextGenerator {
    * @return the text
    */
   public String getText() {
-    return codec.decode(codes.toArray(new Integer[]{}));
+    String returnText = codec.decode(output.toArray(new Integer[]{}));
+    //After we get our output text, clear the output array
+    output.clear();
+    return returnText;
   }
 
   /**
@@ -227,7 +230,7 @@ public class TextGenerator {
    */
   @Nonnull
   public String generateText(@Nonnull Predicate<String> terminator, String prefix) {
-    reset();
+    clearBuffer();
     feed(prefix);
     generate(terminator);
     return getText();
@@ -241,9 +244,10 @@ public class TextGenerator {
    * @return the string
    */
   @Nonnull
+  //TODO: make wording consitant
   public String generateText(int numberOfTokens, String prefix) {
-    reset();
     feed(prefix);
+//    clearBuffer();
     generate(numberOfTokens);
     return getText();
   }
@@ -274,6 +278,7 @@ public class TextGenerator {
       //logger.warn("Error generating text", e);
       throw new RuntimeException("Error generating text: " + codec.decode(theseCodes.toArray(new Integer[]{})), e);
     }
+    //TODO: Why does this return a string and the other generate not?
     return codec.decode(theseCodes.toArray(new Integer[]{}));
   }
 
@@ -294,6 +299,7 @@ public class TextGenerator {
         }
         if (selected == getVocabularySize() - 1) break;
         codes.add(selected);
+        output.add(selected);
         nextSelections = getModel().eval(selected);
       }
     } catch (Throwable e) {
@@ -313,7 +319,7 @@ public class TextGenerator {
   }
 
   /**
-   * Feed double.
+   * Feed text into the model.
    *
    * @param text the text
    * @return the double
@@ -324,11 +330,12 @@ public class TextGenerator {
     codeList.addAll(codec.encode(text));
     if (codeList.isEmpty()) codeList.add(getVocabularySize() - 1);
     for (Integer code : codeList) {
-      if (null != nextSelections) {
+      if (nextSelections != null) {
         float p = nextSelections[code];
         entropy += p != 0 ? -Math.log(p) : Math.log(getVocabularySize());
       }
-      codes.add(code);
+//      codes.add(code);
+//      output.add(code);
       nextSelections = getModel().eval(code);
       if (isVerbose()) {
         logger.info(RefString.format("Feed token: '%s'", codec.decode(code)));
@@ -350,6 +357,17 @@ public class TextGenerator {
     getModel().clear();
     return this;
   }
+  
+  /**
+   * Clear the text buffer
+   * 
+   * @return the TextGenerator
+   */
+  @Nonnull
+  public TextGenerator clearBuffer(){
+      codes.clear();
+      return this;
+  }
 
   /**
    * Select int.
@@ -358,7 +376,7 @@ public class TextGenerator {
    * @return the int
    */
   protected int select(@Nonnull float[] chosen) {
-    double originalFate = Math.random() * 1;
+    double originalFate = Math.random() * .7;//This might be temperature
     double fate = originalFate;
     int j = 0;
     int[] topCandidates = sortedIndices(chosen, chosen.length);
