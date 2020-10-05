@@ -328,16 +328,12 @@ public class TextGenerator {
    * @param text the text
    * @return the double
    */
-  public double feed(String text) {
+  public String feed(String text) {
     double entropy = 0.0;
     List<Integer> codeList = new ArrayList<>();
     codeList.addAll(codec.encode(text));
     if (codeList.isEmpty()) codeList.add(getVocabularySize() - 1);
     for (Integer code : codeList) {
-      if (nextSelections != null) {
-        float p = nextSelections[code];
-        entropy += p != 0 ? -Math.log(p) : Math.log(getVocabularySize());
-      }
 //      codes.add(code);
 //      output.add(code);
       nextSelections = getModel().eval(code);
@@ -347,7 +343,7 @@ public class TextGenerator {
         log(nextSelections, codec, getChoicesToLog());
       }
     }
-    return entropy / Math.log(2);
+    return text;
   }
 
   /**
