@@ -240,7 +240,7 @@ public class TextGenerator {
   }
 
   /**
-   * Generate text string.
+   * Generate text string and return result.
    *
    * @param numberOfTokens the number of tokens
    * @param prefix         the prefix
@@ -249,10 +249,8 @@ public class TextGenerator {
   @Nonnull
   //TODO: make wording consitant
   public String generateText(int numberOfTokens, String prefix) {
-    System.out.println(nextSelections);
     feed(prefix);
     generate(numberOfTokens);
-    System.out.println(nextSelections);
     return getText();
   }
 
@@ -262,7 +260,7 @@ public class TextGenerator {
    * @param fn the fn
    * @return the string
    */
-  public String generate(@Nonnull Predicate<String> fn) {
+  public String generate(@Nonnull Predicate<String> fn) { //TODO: Why do we return a string on this generate but not the other?
     init();
     ArrayList<Integer> theseCodes = new ArrayList<>();
     try {
@@ -287,12 +285,12 @@ public class TextGenerator {
   }
 
   /**
-   * Generate.
+   * Generates text.
    *
    * @param numberOfWords the number of words
    */
   public void generate(int numberOfWords) {
-    init();
+    init(); //TODO: do we need to init everytime we generate?
     try {
       for (int wordIndex = 0; wordIndex < numberOfWords; wordIndex++) {
         assert nextSelections != null;
@@ -326,14 +324,17 @@ public class TextGenerator {
    * Feed text into the model.
    *
    * @param text the text
-   * @return the double
+   * @return the input text
    */
   public String feed(String text) {
-    double entropy = 0.0;
     List<Integer> codeList = new ArrayList<>();
+    //Add all the encoded text to the codelist
     codeList.addAll(codec.encode(text));
+    //If we fed nothing into the system set <|endoftext|> so the model knows
     if (codeList.isEmpty()) codeList.add(getVocabularySize() - 1);
     for (Integer code : codeList) {
+        //Commented out because it was doubling up the inputs
+        //Not sure if this is an actual improvement however
 //      codes.add(code);
 //      output.add(code);
       nextSelections = getModel().eval(code);
@@ -359,10 +360,10 @@ public class TextGenerator {
   }
   
   /**
-   * Select int.
+   * Selects a token based on temperature setting
    *
    * @param chosen the chosen
-   * @return the int
+   * @return int topCandidate
    */
   protected int select(@Nonnull float[] chosen) {
     double originalFate = Math.random() * temperature;//TODO: find a better way to calculate temperature
@@ -381,7 +382,7 @@ public class TextGenerator {
   /**
    * Log.
    *
-   * @param chosen the chosen
+   * @param chosen the chosen token
    * @param codec  the codec
    * @param count  the count
    */
