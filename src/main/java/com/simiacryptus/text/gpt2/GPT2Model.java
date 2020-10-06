@@ -358,5 +358,5 @@ public class GPT2Model implements LanguageCodeModel {
   public Tensor<?> state() {
     return this.tensor_state;
   }
-
+  
 }
