@@ -11,15 +11,20 @@ More Background:
 
 ## Basic Usage
 
-### Import the Library
+### Import the Original Library
 
 ```xml
 <dependency>
     <groupId>com.simiacryptus</groupId>
     <artifactId>tf-gpt-2</artifactId>
-    <version>1.7.1</version>
+    <version>2.0.0</version>
 </dependency>
 ```
+
+### Solution to InvalidGraphDef
+
+The workaround I've found to work is to go to https://s3-us-west-2.amazonaws.com/simiacryptus/gpt2/345M.pb
+Replace the 345M.pb in your project folder with the 1.3gb file.
 
 ### Instantiate the text generator
 
@@ -41,3 +46,11 @@ System.out.println(textGenerator.generateText(500));
 System.out.println(textGenerator.generateText(500, "Once upon a time"));
 ```
 
+### Generate text that continues from previous output
+
+As of right now generateText() will reset the state and history.
+Use generate() to maintain state and feed() to input without losing state.
+
+```java
+System.out.println(textGenerator.generate(500);
+```
